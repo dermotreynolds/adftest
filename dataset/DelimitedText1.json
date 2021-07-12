@@ -20,9 +20,11 @@
 		},
 		"schema": [
 			{
+				"name": "Name",
 				"type": "String"
 			},
 			{
+				"name": "State",
 				"type": "String"
 			}
 		]
