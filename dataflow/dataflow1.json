@@ -10,6 +10,13 @@
 						"type": "DatasetReference"
 					},
 					"name": "source1"
+				},
+				{
+					"dataset": {
+						"referenceName": "DelimitedText1",
+						"type": "DatasetReference"
+					},
+					"name": "source2"
 				}
 			],
 			"sinks": [
@@ -24,9 +31,12 @@
 			"transformations": [
 				{
 					"name": "DerivedColumn1"
+				},
+				{
+					"name": "Filter1"
 				}
 			],
-			"script": "source(output(\n\t\tName as string,\n\t\tState as string\n\t),\n\tallowSchemaDrift: false,\n\tvalidateSchema: false,\n\tlimit: 100,\n\tignoreNoFilesFound: false) ~> source1\nsource1 derive(Column_3 = add(Name,State),\n\t\t{DLTA-test} = iif(startsWith(Name,\"test\"), \"Test\", \"NotTest\"),\n\t\t{DLTA-contains} = iif(instr(Name,\"test\") >0, \"Test\", \"NotTest\")) ~> DerivedColumn1\nDerivedColumn1 sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tpartitionFileNames:['output.csv'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> sink1"
+			"script": "source(output(\n\t\tName as string,\n\t\tState as string\n\t),\n\tallowSchemaDrift: false,\n\tvalidateSchema: false,\n\tlimit: 100,\n\tignoreNoFilesFound: false) ~> source1\nsource(output(\n\t\tName as string,\n\t\tState as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> source2\nsource1 derive(Column_3 = add(Name,State),\n\t\t{DLTA-test} = iif(startsWith(Name,\"test\"), \"Test\", \"NotTest\"),\n\t\t{DLTA-contains} = iif(instr(Name,\"test\") >0, \"Test\", \"NotTest\")) ~> DerivedColumn1\nsource2 filter(toBoolean(iif(instr(Name,\"prod-prod\") >0, \"true\", \"false\"))) ~> Filter1\nDerivedColumn1 sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tpartitionFileNames:['output.csv'],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\tpartitionBy('hash', 1)) ~> sink1"
 		}
 	}
 }
